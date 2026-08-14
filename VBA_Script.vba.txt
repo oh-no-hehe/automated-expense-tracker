@@ -1,0 +1,104 @@
+Sub SubmitForm()
+    Dim ws As Worksheet
+    Dim nextRow As Long
+    Dim totalAmount As Double
+    Dim monthlyAmount As Double
+    Dim monthsToPay As Integer
+    Dim originalDate As Date
+    Dim i As Integer
+    Dim dMonth As Integer, dDay As Integer, dYear As Integer
+    Dim amountText As String, monthInput As String
+    
+    Set ws = ActiveSheet
+    
+    ' 1. Check if required fields are missing
+    If ws.Range("C2").Value = "" Or ws.Range("C4").Value = "" Or _
+       ws.Range("C5").Value = "" Or ws.Range("C6").Value = "" Or _
+       ws.Range("C7").Value = "" Or ws.Range("C10").Value = "" Then
+        MsgBox "Please fill out Item, Amount, Month, Day, Year, and Months to Pay.", vbExclamation, "Required Data Missing"
+        Exit Sub
+    End If
+    
+    ' 2. Clean and convert the Amount field safely
+    amountText = UCase(ws.Range("C4").Value)
+    amountText = Replace(amountText, "PHP", "")
+    amountText = Trim(Replace(amountText, ",", ""))
+    
+    If Not IsNumeric(amountText) Then
+        MsgBox "Please enter a valid number for the Amount.", vbCritical, "Invalid Amount"
+        Exit Sub
+    End If
+    totalAmount = CDbl(amountText)
+    
+    ' 3. Smart Month Converter (Handles "September", "Sept", or "9")
+    monthInput = Trim(ws.Range("C5").Value)
+    
+    If IsNumeric(monthInput) Then
+        dMonth = CInt(monthInput)
+    Else
+        Select Case LCase(Left(monthInput, 3))
+            Case "jan": dMonth = 1
+            Case "feb": dMonth = 2
+            Case "mar": dMonth = 3
+            Case "apr": dMonth = 4
+            Case "may": dMonth = 5
+            Case "jun": dMonth = 6
+            Case "jul": dMonth = 7
+            Case "aug": dMonth = 8
+            Case "sep": dMonth = 9
+            Case "oct": dMonth = 10
+            Case "nov": dMonth = 11
+            Case "dec": dMonth = 12
+            Case Else
+                MsgBox "Please check your Due Month text. Type a valid month name or number.", vbCritical, "Invalid Month Name"
+                Exit Sub
+        End Select
+    End If
+    
+    ' 4. Extract Day and Year components safely
+    dDay = CInt(ws.Range("C6").Value)
+    dYear = CInt(ws.Range("C7").Value)
+    
+    On Error Resume Next
+    originalDate = DateSerial(dYear, dMonth, dDay)
+    If Err.Number <> 0 Then
+        MsgBox "The Month, Day, or Year combination you entered is not valid.", vbCritical, "Invalid Date Fields"
+        Err.Clear
+        Exit Sub
+    End If
+    On Error GoTo 0
+    
+    monthsToPay = CInt(ws.Range("C10").Value)
+    monthlyAmount = totalAmount / monthsToPay
+    
+    ' 5. Generate rows for each monthly installment
+    For i = 1 To monthsToPay
+        ' Find the next empty row dynamically based on the bottom of Column E
+        nextRow = ws.Cells(ws.Rows.Count, "E").End(xlUp).Row + 1
+        
+        ws.Cells(nextRow, "E").Value = ws.Range("C2").Value  ' Item
+        ws.Cells(nextRow, "F").Value = ws.Range("C3").Value  ' Category
+        ws.Cells(nextRow, "G").Value = monthlyAmount         ' Monthly Amount
+        
+        ' Sets advanced monthly calendar dates automatically
+        ws.Cells(nextRow, "H").Value = WorksheetFunction.EDate(originalDate, i - 1)
+        
+        ws.Cells(nextRow, "I").Value = ws.Range("C8").Value  ' Account
+        ws.Cells(nextRow, "J").Value = ws.Range("C9").Value  ' Status
+        
+        ' RESTORED: This line explicitly writes to your Column K (Installment) header
+        ws.Cells(nextRow, "K").Value = i & " of " & monthsToPay
+    Next i
+    
+    ' Format layout structures dynamically
+    ws.Range("G3:G" & nextRow).NumberFormat = "?#,##0.00"
+    ws.Range("H3:H" & nextRow).NumberFormat = "YYYY-MM-DD"
+    
+    ' Clear fields out for the next entry
+    ws.Range("C2:C10").ClearContents
+    
+    MsgBox "Logged " & monthsToPay & " monthly payments successfully!", vbInformation, "Completed"
+End Sub
+
+
+
