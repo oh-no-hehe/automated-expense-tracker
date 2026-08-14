@@ -10,6 +10,9 @@ This ecosystem decouples user interface workflows, database architecture, and pr
 
 The system is organized into a modular pipeline, isolating user ingestion, relational validations, and downstream business intelligence processing to prevent file corruption and maintain absolute data consistency.
 
+---
+
+
 # automated-expense-tracker
 
 
