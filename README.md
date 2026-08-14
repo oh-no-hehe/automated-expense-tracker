@@ -1,4 +1,4 @@
-# 📊 Enterprise-Grade Automated Variable Expense Tracker & Analytics Ecosystem
+# 📊 Automated Expense Tracker & Analytics
 
 An end-to-end financial data engineering solution that bridges data ingestion, structural ledger management, validation layers, and interactive business intelligence reporting. 
 
